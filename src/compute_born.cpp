@@ -41,53 +41,6 @@ using namespace LAMMPS_NS;
 
 #define BIG 1000000000
 
-// 2 indices notations
-int ab[21][2] = {
-    {0,0},  // C11
-    {1,1},  // C22
-    {2,2},  // C33
-    {1,2},  // C44
-    {0,2},  // C55
-    {0,1},  // C66
-    {0,1},  // C12
-    {0,2},  // C13
-    {0,3},  // C14
-    {0,4},  // C15
-    {0,5},  // C16
-    {1,2},  // C23
-    {1,3},  // C24
-    {1,4},  // C25
-    {1,5},  // C26
-    {2,3},  // C34
-    {2,4},  // C35
-    {2,5},  // C36
-    {3,4},  // C45
-    {3,5},  // C46
-    {4,5}}; // C56
-
-// 4 indices notations
-int abcd[21][4] = {
-    {0,0,0,0},  // C11
-    {1,1,1,1},  // C22
-    {2,2,2,2},  // C33
-    {1,2,1,2},  // C44
-    {0,2,0,2},  // C55
-    {0,1,0,1},  // C66
-    {0,0,1,1},  // C12
-    {0,0,2,2},  // C13
-    {0,0,1,2},  // C14
-    {0,0,0,2},  // C15
-    {0,0,0,1},  // C16
-    {1,1,2,2},  // C23
-    {1,1,1,2},  // C24
-    {1,1,0,2},  // C25
-    {1,1,0,1},  // C26
-    {2,2,1,2},  // C34
-    {2,2,0,2},  // C35
-    {2,2,0,1},  // C36
-    {1,2,0,2},  // C45
-    {1,2,0,1},  // C46
-    {0,1,0,2}}; // C56
 
 /* ---------------------------------------------------------------------- */
 
@@ -95,9 +48,6 @@ ComputeBorn::ComputeBorn(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   MPI_Comm_rank(world,&me);
-
-  // We may need to set the different contributions at some point
-  // but who cares for now?
 
   // For now the matrix can be computed as a 21 element vector
 
@@ -147,7 +97,6 @@ void ComputeBorn::init()
 {
 
   // Timestep Value
-
   dt = update->dt;
 
   pairflag = 0;
@@ -158,7 +107,7 @@ void ComputeBorn::init()
 
   // Error check
 
-  // This compute requires a pair style with pair_born method implemented
+  // This compute requires at least a pair style with pair_born method implemented
 
   if (force->pair == NULL)
     error->all(FLERR,"No pair style is defined for compute born");
@@ -204,6 +153,59 @@ void ComputeBorn::init()
       impflag = 1;
     }
   }
+
+
+
+  // 2 indices notations
+  // alpha-beta
+  // int const albe[21][2] = {
+  //   {0,0},  // C11
+  //   {1,1},  // C22
+  //   {2,2},  // C33
+  //   {1,2},  // C44
+  //   {0,2},  // C55
+  //   {0,1},  // C66
+  //   {0,1},  // C12
+  //   {0,2},  // C13
+  //   {0,3},  // C14
+  //   {0,4},  // C15
+  //   {0,5},  // C16
+  //   {1,2},  // C23
+  //   {1,3},  // C24
+  //   {1,4},  // C25
+  //   {1,5},  // C26
+  //   {2,3},  // C34
+  //   {2,4},  // C35
+  //   {2,5},  // C36
+  //   {3,4},  // C45
+  //   {3,5},  // C46
+  //   {4,5}   // C56
+  // };
+
+  // 4 indices notations
+  // int const albemunu[21][4] = {
+  //   {0,0,0,0},  // C11
+  //   {1,1,1,1},  // C22
+  //   {2,2,2,2},  // C33
+  //   {1,2,1,2},  // C44
+  //   {0,2,0,2},  // C55
+  //   {0,1,0,1},  // C66
+  //   {0,0,1,1},  // C12
+  //   {0,0,2,2},  // C13
+  //   {0,0,1,2},  // C14
+  //   {0,0,0,2},  // C15
+  //   {0,0,0,1},  // C16
+  //   {1,1,2,2},  // C23
+  //   {1,1,1,2},  // C24
+  //   {1,1,0,2},  // C25
+  //   {1,1,0,1},  // C26
+  //   {2,2,1,2},  // C34
+  //   {2,2,0,2},  // C35
+  //   {2,2,0,1},  // C36
+  //   {1,2,0,2},  // C45
+  //   {1,2,0,1},  // C46
+  //   {0,1,0,2}   // C56
+  // };
 
   // need an occasional half neighbor list
   int irequest = neighbor->request((void *) this);
@@ -271,8 +273,7 @@ void ComputeBorn::compute_pairs()
   int newton_pair = force->newton_pair;
 
   // zero out arrays for one sample
-
-  for (i = 0; i < nvalues; i++) values_local[i] = 0.0;
+  // Could maybe be done at init?
 
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
@@ -287,7 +288,7 @@ void ComputeBorn::compute_pairs()
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
-  // Parse values
+  // Declares born values
 
   int a,b,c,d;
   double xi[3];
@@ -296,6 +297,8 @@ void ComputeBorn::compute_pairs()
   double rij[3];
   double pair_pref;
   double r2inv;
+
+  for (i = 0; i < nvalues; i++) values_local[i] = 0.0;
 
   m = 0;
   while (m<nvalues) {
@@ -345,10 +348,10 @@ void ComputeBorn::compute_pairs()
             c = 0;
             d = 0;
             for (i = 0; i<21; i++) {
-              a = abcd[i][0];
-              b = abcd[i][1];
-              c = abcd[i][2];
-              d = abcd[i][3];
+              a = albemunu[i][0];
+              b = albemunu[i][1];
+              c = albemunu[i][2];
+              d = albemunu[i][3];
               values_local[m+i] += pair_pref*rij[a]*rij[b]*rij[c]*rij[d]*r2inv;
             }
             // values_local[m] += pair_pref*rij[0]*rij[0]*rij[0]*rij[0]*r2inv;
@@ -476,10 +479,10 @@ void ComputeBorn::compute_bonds()
         c = 0;
         d = 0;
         for (i = 0; i<21; i++) {
-          a = abcd[i][0];
-          b = abcd[i][1];
-          c = abcd[i][2];
-          d = abcd[i][3];
+          a = albemunu[i][0];
+          b = albemunu[i][1];
+          c = albemunu[i][2];
+          d = albemunu[i][3];
           values_local[m+i] += pair_pref*rij[a]*rij[b]*rij[c]*rij[d]*r2inv;
         }
         // // C11 C22 C33 C44 C55 C66
@@ -654,18 +657,18 @@ void ComputeBorn::compute_angles()
         c = 0;
         d = 0;
         for (i = 0; i<6; i++) {
-          a = abcd[i][0];
-          b = abcd[i][1];
+          a = albe[i][0];
+          b = albe[i][1];
           dcos[i] = cost*(del1[a]*del2[b]+del1[b]*del2[a]*r1inv*r2inv -
                           del1[a]*del1[b]*rsq1inv - del2[a]*del2[b]*rsq2inv);
         }
         for (i = 0; i<21; i++) {
-          a = abcd[i][0];
-          b = abcd[i][1];
-          c = abcd[i][2];
-          d = abcd[i][3];
-          e = ab[i][0];
-          f = ab[i][1];
+          a = albemunu[i][0];
+          b = albemunu[i][1];
+          c = albemunu[i][2];
+          d = albemunu[i][3];
+          e = albe[i][0];
+          f = albe[i][1];
           d2lncos[i] = 2*(del1[a]*del1[b]*del1[c]*del1[d]*rsq1inv*rsq1inv +
                           del2[a]*del2[b]*del2[c]*del2[d]*rsq2inv*rsq2inv) -
                          (del1[a]*del2[b]+del1[b]*del2[a]) *
@@ -858,8 +861,8 @@ void ComputeBorn::compute_dihedrals()
         e = 0;
         f = 0;
         for (i = 0; i<6; i++) {
-          a = abcd[i][0];
-          b = abcd[i][1];
+          a = albe[i][0];
+          b = albe[i][1];
           dmm[i] = 2*(b2sq*b1[a]*b1[b]+b1sq*b2[a]*b2[b] - b1b2*(b1[a]*b2[b]+b1[b]*b2[a]));
           dnn[i] = 2*(b3sq*b2[a]*b2[b]+b2sq*b3[a]*b3[b] - b2b3*(b2[a]*b3[b]+b2[b]*b3[a]));
           dmn[i] = b1b2*(b2[a]*b3[b]+b2[b]*b3[a]) + b2b3*(b1[a]*b2[b]+b1[b]*b2[a])
@@ -867,12 +870,12 @@ void ComputeBorn::compute_dihedrals()
           dcos[i] = co*(rabinv*rabinv*dmn[i] - ra2inv*dmm[i] - rb2inv*dnn[i])/2.;
         }
         for (i = 0; i<21; i++) {
-          a = 0;
-          b = 0;
-          c = 0;
-          d = 0;
-          e = 0;
-          f = 0;
+          a = albemunu[i][0];
+          b = albemunu[i][1];
+          c = albemunu[i][2];
+          d = albemunu[i][3];
+          e = albe[i][0];
+          f = albe[i][1];
           d2mm[i] = 4*(b1[a]*b1[b]*b2[c]*b2[d] + b1[c]*b1[d]*b2[a]*b2[b])
                   - 8*(b1[a]*b2[b]+b1[b]*b2[a])*(b1[c]*b2[d]+b1[d]*b2[c]);
           d2nn[i] = 4*(b2[a]*b2[b]*b3[c]*b3[d] + b2[c]*b2[d]*b3[a]*b3[b])
