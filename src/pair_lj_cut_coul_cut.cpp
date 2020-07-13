@@ -33,6 +33,7 @@ using namespace MathConst;
 PairLJCutCoulCut::PairLJCutCoulCut(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  born_enable = 1;
   centroidstressflag = 1;
 }
 
@@ -456,6 +457,36 @@ double PairLJCutCoulCut::single(int i, int j, int itype, int jtype,
   }
 
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCutCoulCut::born(int i, int j, int itype, int jtype,
+                                double rsq,
+                                double factor_coul, double factor_lj,
+                                double &dupair, double &du2pair)
+{
+  double rinv,r2inv,r6inv,ducoul,dulj,du2coul,du2lj;
+
+  r2inv = 1.0/rsq;
+  rinv = sqrt(r2inv);
+  if (rsq < cut_coulsq[itype][jtype]) {
+    ducoul = -force->qqrd2e * atom->q[i]*atom->q[j]*r2inv;
+    du2coul = force->qqrd2e * atom->q[i]*atom->q[j]*r2inv*rinv;
+  } else {
+      ducoul = 0.0;
+      du2coul = 0.0;
+  }
+  if (rsq < cut_ljsq[itype][jtype]) {
+    r6inv = r2inv*r2inv*r2inv;
+    dulj = r6inv * rinv * (lj2[itype][jtype] - lj1[itype][jtype]*r6inv);
+    du2lj = r6inv * r2inv * (13*lj1[itype][jtype]*r6inv - 7*lj2[itype][jtype]);
+  } else {
+      dulj = 0.0;
+      du2lj = 0.0;
+  }
+  dupair = factor_coul*ducoul + factor_lj*dulj;
+  du2pair = factor_coul*du2coul + factor_lj*du2lj;
 }
 
 /* ---------------------------------------------------------------------- */

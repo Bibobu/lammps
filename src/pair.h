@@ -48,6 +48,7 @@ class Pair : protected Pointers {
   int comm_reverse_off;          // size of reverse comm even if newton off
 
   int single_enable;             // 1 if single() routine exists
+  int born_enable;               // 1 if born() routine exists
   int single_hessian_enable;     // 1 if single_hessian() routine exists
   int restartinfo;               // 1 if pair style writes restart info
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
@@ -155,6 +156,13 @@ class Pair : protected Pointers {
                         double& fforce) {
     fforce = 0.0;
     return 0.0;
+  }
+
+  virtual void born(int, int, int, int,
+                        double, double, double,
+                        double& du, double& du2) {
+      du = 0.0;
+      du2 = 0.0;
   }
 
   void hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]);

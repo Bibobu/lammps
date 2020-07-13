@@ -28,6 +28,7 @@ class Bond : protected Pointers {
   double energy;                  // accumulated energies
   double virial[6];               // accumulated virial
   double *eatom,**vatom;          // accumulated per-atom energy/virial
+  int born_enable;               // 1 if born() routine exists
 
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
@@ -56,6 +57,12 @@ class Bond : protected Pointers {
   virtual void reinit();
 
   void write_file(int, char**);
+
+  virtual void born(int, double, int, int,
+                        double& du, double& du2) {
+      du = 0.0;
+      du2 = 0.0;
+  }
 
  protected:
   int suffix_flag;             // suffix compatibility flag

@@ -37,6 +37,7 @@ Improper::Improper(LAMMPS *lmp) : Pointers(lmp)
   vatom = NULL;
   cvatom = NULL;
   setflag = NULL;
+  born_enable = 0;
 
   execution_space = Host;
   datamask_read = ALL_MASK;

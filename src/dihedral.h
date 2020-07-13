@@ -29,6 +29,7 @@ class Dihedral : protected Pointers {
   double virial[6];                  // accumulated virial
   double *eatom,**vatom;             // accumulated per-atom energy/virial
   double **cvatom;                   // accumulated per-atom centroid virial
+  int born_enable;                   // 1 if born() routine exists
 
   // KOKKOS host/device flag and data masks
 
@@ -49,6 +50,12 @@ class Dihedral : protected Pointers {
   virtual void read_restart_settings(FILE *) {};
   virtual void write_data(FILE *) {}
   virtual double memory_usage();
+
+  virtual void born(int, int, int, int, int,
+                        double& du, double& du2) {
+      du = 0.0;
+      du2 = 0.0;
+  }
 
  protected:
   int suffix_flag;             // suffix compatibility flag
