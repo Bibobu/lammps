@@ -29,7 +29,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondZero::BondZero(LAMMPS *lmp) : Bond(lmp), coeffflag(1) {}
+BondZero::BondZero(LAMMPS *lmp) : Bond(lmp), coeffflag(1) {
+  born_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -150,6 +152,15 @@ double BondZero::single(int /*type*/, double /*rsq*/, int /*i*/, int /*j*/,
                         double & /*fforce*/)
 {
   return 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondZero::born(int /*type*/, double /*rsq*/, int /*i*/, int /*j*/,
+                        double &dupair, double &du2pair)
+{
+  dupair = 0.0;
+  du2pair = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

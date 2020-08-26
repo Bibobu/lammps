@@ -35,6 +35,7 @@ AngleHarmonic::AngleHarmonic(LAMMPS *lmp) : Angle(lmp)
 {
   k = NULL;
   theta0 = NULL;
+  born_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -261,4 +262,43 @@ double AngleHarmonic::single(int type, int i1, int i2, int i3)
   double dtheta = acos(c) - theta0[type];
   double tk = k[type] * dtheta;
   return tk*dtheta;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AngleHarmonic::born(int type, int i1, int i2, int i3,
+                         float &dupair, float &du2pair)
+{
+  double **x = atom->x;
+
+  double delx1 = x[i1][0] - x[i2][0];
+  double dely1 = x[i1][1] - x[i2][1];
+  double delz1 = x[i1][2] - x[i2][2];
+  domain->minimum_image(delx1,dely1,delz1);
+  double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
+
+  double delx2 = x[i3][0] - x[i2][0];
+  double dely2 = x[i3][1] - x[i2][1];
+  double delz2 = x[i3][2] - x[i2][2];
+  domain->minimum_image(delx2,dely2,delz2);
+  double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
+
+  double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+  c /= r1*r2;
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
+  double sinv = 1.0/sqrt(1-c*c);
+  double t = acos(c);
+
+  double dtheta = t - theta0[type];
+  double tk = k[type] * dtheta;
+  // Computing the second derivative d2t/dcos(t)2
+  // without the cotangent function
+  double d2t = -2*c/(cos(2*t)-1);
+
+  // dupair = dU(t)/dt*dt/dcos(t)
+  dupair = -tk*dtheta*sinv;
+
+  //du2pair = d2U(t)/dt2*(dt/dcos(t))**2 + dU(t)/dt*d2t/dcos(t)2
+  du2pair = tk*(sinv*sinv+dtheta*d2t);
 }

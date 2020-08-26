@@ -31,7 +31,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleZero::AngleZero(LAMMPS *lmp) : Angle(lmp), coeffflag(1) {}
+AngleZero::AngleZero(LAMMPS *lmp) : Angle(lmp), coeffflag(1) {
+  born_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -151,3 +153,13 @@ double AngleZero::single(int /*type*/, int /*i1*/, int /*i2*/, int /*i3*/)
 {
   return 0.0;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void AngleZero::born(int /*atype*/, int /*i*/, int /*j*/, int /*k*/,
+                         float &dupair, float &du2pair)
+{
+  dupair = 0.0;
+  du2pair = 0.0;
+}
+

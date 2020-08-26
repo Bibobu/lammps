@@ -50,6 +50,7 @@ class PairZero : public Pair {
   void write_data(FILE *);
   void write_data_all(FILE *);
   double single(int, int, int, int, double, double, double, double &);
+  void born(int, int, int, int, double, double, double, double &, double &);
 
  protected:
   double cut_global;

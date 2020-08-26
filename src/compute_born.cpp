@@ -154,59 +154,6 @@ void ComputeBorn::init()
     }
   }
 
-
-
-  // 2 indices notations
-  // alpha-beta
-  // int const albe[21][2] = {
-  //   {0,0},  // C11
-  //   {1,1},  // C22
-  //   {2,2},  // C33
-  //   {1,2},  // C44
-  //   {0,2},  // C55
-  //   {0,1},  // C66
-  //   {0,1},  // C12
-  //   {0,2},  // C13
-  //   {0,3},  // C14
-  //   {0,4},  // C15
-  //   {0,5},  // C16
-  //   {1,2},  // C23
-  //   {1,3},  // C24
-  //   {1,4},  // C25
-  //   {1,5},  // C26
-  //   {2,3},  // C34
-  //   {2,4},  // C35
-  //   {2,5},  // C36
-  //   {3,4},  // C45
-  //   {3,5},  // C46
-  //   {4,5}   // C56
-  // };
-
-  // 4 indices notations
-  // int const albemunu[21][4] = {
-  //   {0,0,0,0},  // C11
-  //   {1,1,1,1},  // C22
-  //   {2,2,2,2},  // C33
-  //   {1,2,1,2},  // C44
-  //   {0,2,0,2},  // C55
-  //   {0,1,0,1},  // C66
-  //   {0,0,1,1},  // C12
-  //   {0,0,2,2},  // C13
-  //   {0,0,1,2},  // C14
-  //   {0,0,0,2},  // C15
-  //   {0,0,0,1},  // C16
-  //   {1,1,2,2},  // C23
-  //   {1,1,1,2},  // C24
-  //   {1,1,0,2},  // C25
-  //   {1,1,0,1},  // C26
-  //   {2,2,1,2},  // C34
-  //   {2,2,0,2},  // C35
-  //   {2,2,0,1},  // C36
-  //   {1,2,0,2},  // C45
-  //   {1,2,0,1},  // C46
-  //   {0,1,0,2}   // C56
-  // };
-
   // need an occasional half neighbor list
   int irequest = neighbor->request((void *) this);
   neighbor->requests[irequest]->pair = 0;
@@ -238,6 +185,11 @@ void ComputeBorn::compute_vector()
 
   if (dihedflag) compute_dihedrals();
 
+  // Even if stated in Voyatzis-2012, improper and dihedrals
+  // are not exactly the same in lammps. Atoms order can depend
+  // on the forcefield/improper interaction used. As such,
+  // writing a general routine to compute improper contribution
+  // might be more tricky than expected.
   // if (impflag) compute_impropers();
 
   // sum Born contributions over all procs
@@ -248,7 +200,6 @@ void ComputeBorn::compute_vector()
   for (m=0; m<nvalues; m++) {
     vector[m] = values_global[m];
   }
-
 }
 
 
@@ -273,7 +224,8 @@ void ComputeBorn::compute_pairs()
   int newton_pair = force->newton_pair;
 
   // zero out arrays for one sample
-  // Could maybe be done at init?
+
+  for (i = 0; i < nvalues; i++) values_local[i] = 0.0;
 
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
@@ -297,8 +249,6 @@ void ComputeBorn::compute_pairs()
   double rij[3];
   double pair_pref;
   double r2inv;
-
-  for (i = 0; i < nvalues; i++) values_local[i] = 0.0;
 
   m = 0;
   while (m<nvalues) {
@@ -338,11 +288,11 @@ void ComputeBorn::compute_pairs()
 
           if (newton_pair || j < nlocal) {
             // Add contribution to Born tensor
-            // pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,dupair);
+
             pair->born(i,j,itype,jtype,rsq,factor_coul,factor_lj,dupair,du2pair);
             pair_pref = du2pair - dupair*rinv;
 
-            // C11 C22 C33 C44 C55 C66
+            // See albemunu in compute_born.h for indices order.
             a = 0;
             b = 0;
             c = 0;
@@ -354,42 +304,11 @@ void ComputeBorn::compute_pairs()
               d = albemunu[i][3];
               values_local[m+i] += pair_pref*rij[a]*rij[b]*rij[c]*rij[d]*r2inv;
             }
-            // values_local[m] += pair_pref*rij[0]*rij[0]*rij[0]*rij[0]*r2inv;
-            // values_local[m+1] += pair_pref*rij[1]*rij[1]*rij[1]*rij[1]*r2inv;
-            // values_local[m+2] += pair_pref*rij[2]*rij[2]*rij[2]*rij[2]*r2inv;
-            // values_local[m+3] += pair_pref*rij[1]*rij[2]*rij[1]*rij[2]*r2inv;
-            // values_local[m+4] += pair_pref*rij[0]*rij[2]*rij[0]*rij[2]*r2inv;
-            // values_local[m+5] += pair_pref*rij[0]*rij[1]*rij[0]*rij[1]*r2inv;
-
-            // // C12 C13 C14 C15 C16
-            // values_local[m+6] += pair_pref*rij[0]*rij[0]*rij[1]*rij[1]*r2inv;
-            // values_local[m+7] += pair_pref*rij[0]*rij[0]*rij[2]*rij[2]*r2inv;
-            // values_local[m+8] += pair_pref*rij[0]*rij[0]*rij[1]*rij[2]*r2inv;
-            // values_local[m+9] += pair_pref*rij[0]*rij[0]*rij[0]*rij[2]*r2inv;
-            // values_local[m+10] += pair_pref*rij[0]*rij[0]*rij[0]*rij[1]*r2inv;
-
-            // // C23 C24 C25 C26
-            // values_local[m+11] += pair_pref*rij[1]*rij[1]*rij[2]*rij[2]*r2inv;
-            // values_local[m+12] += pair_pref*rij[1]*rij[1]*rij[1]*rij[2]*r2inv;
-            // values_local[m+13] += pair_pref*rij[1]*rij[1]*rij[0]*rij[2]*r2inv;
-            // values_local[m+14] += pair_pref*rij[1]*rij[1]*rij[0]*rij[1]*r2inv;
-
-            // // C34 C35 C36
-            // values_local[m+15] += pair_pref*rij[2]*rij[2]*rij[1]*rij[2]*r2inv;
-            // values_local[m+16] += pair_pref*rij[2]*rij[2]*rij[0]*rij[2]*r2inv;
-            // values_local[m+17] += pair_pref*rij[2]*rij[2]*rij[0]*rij[1]*r2inv;
-
-            // // C45 C46
-            // values_local[m+18] += pair_pref*rij[1]*rij[2]*rij[0]*rij[2]*r2inv;
-            // values_local[m+19] += pair_pref*rij[1]*rij[2]*rij[0]*rij[1]*r2inv;
-
-            // // C56
-            // values_local[m+20] += pair_pref*rij[0]*rij[2]*rij[0]*rij[1]*r2inv;
           }
         }
       }
     m += 21;
-    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -472,8 +391,12 @@ void ComputeBorn::compute_bonds()
         r2inv = 1.0/rsq;
         rinv = sqrt(r2inv);
 
+        pair_pref = 0.0;
+        dupair = 0.0;
+        du2pair = 0.0;
         bond->born(btype,rsq,atom1,atom2,dupair,du2pair);
         pair_pref = du2pair - dupair*rinv;
+
         a = 0;
         b = 0;
         c = 0;
@@ -485,41 +408,9 @@ void ComputeBorn::compute_bonds()
           d = albemunu[i][3];
           values_local[m+i] += pair_pref*rij[a]*rij[b]*rij[c]*rij[d]*r2inv;
         }
-        // // C11 C22 C33 C44 C55 C66
-        // values_local[m] += pair_pref*rij[0]*rij[0]*rij[0]*rij[0]*r2inv;
-        // values_local[m+1] += pair_pref*rij[1]*rij[1]*rij[1]*rij[1]*r2inv;
-        // values_local[m+2] += pair_pref*rij[2]*rij[2]*rij[2]*rij[2]*r2inv;
-        // values_local[m+3] += pair_pref*rij[1]*rij[2]*rij[1]*rij[2]*r2inv;
-        // values_local[m+4] += pair_pref*rij[0]*rij[2]*rij[0]*rij[2]*r2inv;
-        // values_local[m+5] += pair_pref*rij[0]*rij[1]*rij[0]*rij[1]*r2inv;
-
-        // // C12 C13 C14 C15 C16
-        // values_local[m+6] += pair_pref*rij[0]*rij[0]*rij[1]*rij[1]*r2inv;
-        // values_local[m+7] += pair_pref*rij[0]*rij[0]*rij[2]*rij[2]*r2inv;
-        // values_local[m+8] += pair_pref*rij[0]*rij[0]*rij[1]*rij[2]*r2inv;
-        // values_local[m+9] += pair_pref*rij[0]*rij[0]*rij[0]*rij[2]*r2inv;
-        // values_local[m+10] += pair_pref*rij[0]*rij[0]*rij[0]*rij[1]*r2inv;
-
-        // // C23 C24 C25 C26
-        // values_local[m+11] += pair_pref*rij[1]*rij[1]*rij[2]*rij[2]*r2inv;
-        // values_local[m+12] += pair_pref*rij[1]*rij[1]*rij[1]*rij[2]*r2inv;
-        // values_local[m+13] += pair_pref*rij[1]*rij[1]*rij[0]*rij[2]*r2inv;
-        // values_local[m+14] += pair_pref*rij[1]*rij[1]*rij[0]*rij[1]*r2inv;
-
-        // // C34 C35 C36
-        // values_local[m+15] += pair_pref*rij[2]*rij[2]*rij[1]*rij[2]*r2inv;
-        // values_local[m+16] += pair_pref*rij[2]*rij[2]*rij[0]*rij[2]*r2inv;
-        // values_local[m+17] += pair_pref*rij[2]*rij[2]*rij[0]*rij[1]*r2inv;
-
-        // // C45 C46
-        // values_local[m+18] += pair_pref*rij[1]*rij[2]*rij[0]*rij[2]*r2inv;
-        // values_local[m+19] += pair_pref*rij[1]*rij[2]*rij[0]*rij[1]*r2inv;
-
-        // // C56
-        // values_local[m+20] += pair_pref*rij[0]*rij[2]*rij[0]*rij[1]*r2inv;
-        }
       }
-   m += 21;
+    }
+    m += 21;
   }
 }
 
@@ -647,6 +538,11 @@ void ComputeBorn::compute_angles()
         cinv = 1.0/cost;
         theta = acos(cost);
 
+        // The method must return derivative with regards
+        // to cos(theta)!
+        // Use the chain rule if needed:
+        // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
+        // with dt/dcos(t) = -1/sin(t)
         angle->born(atype,atom1,atom2,atom3,duang,du2ang);
 
         // Voigt notation
@@ -677,8 +573,8 @@ void ComputeBorn::compute_angles()
           d2cos[i] =  c*d2lncos[i] + dcos[e]*dcos[f]*cinv;
           values_local[m+i] += duang*d2cos[i] + du2ang*dcos[e]*dcos[f];
         }
+      }
     }
-  }
   m+=21;
   }
 }
@@ -789,6 +685,12 @@ void ComputeBorn::compute_dihedrals()
         if (atom4 < 0 || !(mask[atom4] & groupbit)) continue;
 
         // phi calculation from dihedral style harmonic
+
+        // The method must return derivative with regards
+        // to cos(phi)!
+        // Use the chain rule if needed:
+        // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
+        // with dt/dcos(t) = -1/sin(t)
 
         dihedral->born(nd,atom1,atom2,atom3,atom4,dudih,du2dih);
 

@@ -33,6 +33,7 @@ class DihedralHarmonic : public Dihedral {
   void write_restart(FILE *);
   virtual void read_restart(FILE *);
   void write_data(FILE *);
+  void born(int, int, int, int, int, float &, float &);
 
  protected:
   double *k,*cos_shift,*sin_shift;

@@ -26,7 +26,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralZero::DihedralZero(LAMMPS *lmp) : Dihedral(lmp), coeffflag(1) {}
+DihedralZero::DihedralZero(LAMMPS *lmp) : Dihedral(lmp), coeffflag(1) {
+  born_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -114,4 +116,12 @@ void DihedralZero::read_restart(FILE * /*fp*/)
 void DihedralZero::write_data(FILE *fp) {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     fprintf(fp,"%d\n",i);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DihedralZero::born(int /*dtype*/, int /*i*/, int /*j*/, int /*k*/, int /*l*/,
+                        float &dupair, float &du2pair) {
+  dupair = 0.0;
+  du2pair = 0.0;
 }

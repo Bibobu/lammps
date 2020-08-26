@@ -38,6 +38,7 @@ class AngleZero : public Angle {
   void write_data(FILE *);
 
   double single(int, int, int, int);
+  void born(int, int, int, int, float &, float &);
 
  protected:
   double *theta0;

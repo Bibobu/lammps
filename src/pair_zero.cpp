@@ -34,6 +34,7 @@ PairZero::PairZero(LAMMPS *lmp) : Pair(lmp) {
   writedata=1;
   single_enable=1;
   respa_enable=1;
+  born_enable=1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,3 +247,12 @@ double PairZero::single(int /*i*/, int /*j*/, int /* itype */, int /* jtype */,
   return 0.0;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairZero::born(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                         double /*factor_coul*/, double factor_lj,
+                         double &dupair, double &du2pair)
+{
+  dupair = 0.0;
+  du2pair = 0.0;
+}

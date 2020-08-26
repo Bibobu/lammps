@@ -30,6 +30,7 @@ using namespace LAMMPS_NS;
 BondHarmonic::BondHarmonic(LAMMPS *lmp) : Bond(lmp)
 {
   reinitflag = 1;
+  born_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -198,6 +199,17 @@ double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/,
   fforce = 0;
   if (r > 0.0) fforce = -2.0*rk/r;
   return rk*dr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondHarmonic::born(int type, double rsq, int /*i*/, int /*j*/,
+                            double &dupair, double &du2pair) {
+  double r = sqrt(rsq);
+  double dr = r - r0[type];
+  double rk = k[type] * dr;
+  dupair = 2.0*rk;
+  du2pair = 2*k[type];
 }
 
 /* ----------------------------------------------------------------------

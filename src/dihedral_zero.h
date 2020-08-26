@@ -39,6 +39,7 @@ class DihedralZero : public Dihedral {
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);
+  void born(int, int, int, int, int, float &, float &);
 
  protected:
   int coeffflag;

@@ -50,54 +50,54 @@ namespace LAMMPS_NS {
     int pairflag, bondflag, angleflag;
     int dihedflag, impflag;
 
-  //  int const albe[21][2];
-  int const albe[21][2] = {
-    {0,0},  // C11
-    {1,1},  // C22
-    {2,2},  // C33
-    {1,2},  // C44
-    {0,2},  // C55
-    {0,1},  // C66
-    {0,1},  // C12
-    {0,2},  // C13
-    {0,3},  // C14
-    {0,4},  // C15
-    {0,5},  // C16
-    {1,2},  // C23
-    {1,3},  // C24
-    {1,4},  // C25
-    {1,5},  // C26
-    {2,3},  // C34
-    {2,4},  // C35
-    {2,5},  // C36
-    {3,4},  // C45
-    {3,5},  // C46
-    {4,5}   // C56
-  };
-  //  int const albemunu[21][4];
-  int const albemunu[21][4] = {
-    {0,0,0,0},  // C11
-    {1,1,1,1},  // C22
-    {2,2,2,2},  // C33
-    {1,2,1,2},  // C44
-    {0,2,0,2},  // C55
-    {0,1,0,1},  // C66
-    {0,0,1,1},  // C12
-    {0,0,2,2},  // C13
-    {0,0,1,2},  // C14
-    {0,0,0,2},  // C15
-    {0,0,0,1},  // C16
-    {1,1,2,2},  // C23
-    {1,1,1,2},  // C24
-    {1,1,0,2},  // C25
-    {1,1,0,1},  // C26
-    {2,2,1,2},  // C34
-    {2,2,0,2},  // C35
-    {2,2,0,1},  // C36
-    {1,2,0,2},  // C45
-    {1,2,0,1},  // C46
-    {0,1,0,2}   // C56
-  };
+    int const albe[21][2] = {
+      {0,0},  // C11
+      {1,1},  // C22
+      {2,2},  // C33
+      {1,2},  // C44
+      {0,2},  // C55
+      {0,1},  // C66
+      {0,1},  // C12
+      {0,2},  // C13
+      {0,3},  // C14
+      {0,4},  // C15
+      {0,5},  // C16
+      {1,2},  // C23
+      {1,3},  // C24
+      {1,4},  // C25
+      {1,5},  // C26
+      {2,3},  // C34
+      {2,4},  // C35
+      {2,5},  // C36
+      {3,4},  // C45
+      {3,5},  // C46
+      {4,5}   // C56
+    };
+
+    int const albemunu[21][4] = {
+      {0,0,0,0},  // C11
+      {1,1,1,1},  // C22
+      {2,2,2,2},  // C33
+      {1,2,1,2},  // C44
+      {0,2,0,2},  // C55
+      {0,1,0,1},  // C66
+      {0,0,1,1},  // C12
+      {0,0,2,2},  // C13
+      {0,0,1,2},  // C14
+      {0,0,0,2},  // C15
+      {0,0,0,1},  // C16
+      {1,1,2,2},  // C23
+      {1,1,1,2},  // C24
+      {1,1,0,2},  // C25
+      {1,1,0,1},  // C26
+      {2,2,1,2},  // C34
+      {2,2,0,2},  // C35
+      {2,2,0,1},  // C36
+      {1,2,0,2},  // C45
+      {1,2,0,1},  // C46
+      {0,1,0,2}   // C56
+    };
+
     double *values_local,*values_global;
     double pos,pos1,dt,nktv2p,ftm2v;
     class NeighList *list;
@@ -120,37 +120,6 @@ namespace LAMMPS_NS {
  E: Compute stress/mop incompatible with simulation dimension
 
  Compute stress/mop only works with 3D simulations.
-
- E: Compute stress/mop incompatible with triclinic simulation box
-
- Self-explanatory.
-
- E: Compute stress/mop requires a fixed simulation box
-
- Compute stress/mop is not compatible with any change of volume or shape
- or boundary conditions of the simulation box.
-
- E: No pair style is defined for compute stress/mop
-
- Self-explanatory. Compute stress/mop requires the definition of a pair style.
-
- E: Pair style does not support compute stress/mop
-
- The pair style does not have a single() function, so it can
- not be invoked by compute stress/mop.
-
- W: compute stress/mop does not account for bond potentials
-
- W: compute stress/mop does not account for angle potentials
-
- W: compute stress/mop does not account for dihedral potentials
-
- W: compute stress/mop does not account for improper potentials
-
- W: compute stress/mop does not account for kspace contributions
-
- Compute stress/mop only accounts for pairwise additive interactions for
- the computation of local stress tensor components.
 
  */
 
