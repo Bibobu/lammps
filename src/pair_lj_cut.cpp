@@ -701,7 +701,6 @@ void PairLJCut::born(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
 
   // Reminder: lj1 = 48*e*s^12, lj2 = 24*e*s^6
   // so dupair = -forcelj/r = -fforce*r (forcelj from single method)
-  // factor_lj not considered in these equations
 
   du = r6inv * rinv * (lj2[itype][jtype] - lj1[itype][jtype]*r6inv);
   du2 = r6inv * r2inv * (13*lj1[itype][jtype]*r6inv - 7*lj2[itype][jtype]);

@@ -38,6 +38,7 @@ class PairTable : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
+  void born(int, int, int, int, double, double, double, double &, double &);
   void *extract(const char *, int &);
 
   enum{LOOKUP,LINEAR,SPLINE,BITMAP};

@@ -45,6 +45,7 @@ PairTable::PairTable(LAMMPS *lmp) : Pair(lmp)
   ntables = 0;
   tables = NULL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
+  born_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1021,6 +1022,69 @@ double PairTable::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
   return factor_lj*phi;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairTable::born(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                         double /*factor_coul*/, double factor_lj,
+                         double &dupair, double &du2pair)
+{
+  int itable,itable1,itable2;
+  double f1, f2;
+  double du, du2;
+  double fraction,value,a,b,phi;
+  int tlm1 = tablength - 1;
+
+  // f is stored as f/r
+  double r = sqrt(rsq);
+
+  Table *tb = &tables[tabindex[itype][jtype]];
+  if (rsq < tb->innersq) error->one(FLERR,"Pair distance < table inner cutoff");
+
+  if (tabstyle == LOOKUP) {
+    itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
+    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
+    if (itable > 0 && itable < tlm1) {
+        f1 = -tb->f[itable+1];
+        f2 = -tb->f[itable-1];
+        du = -tb->f[itable]*r;
+        // df/dr = dr^2/dr * df/dr^2 = 2*r*df/dr^2
+        // df/dr^2 = (f1-f2)/(2*invdelta)
+        du2 = r * r * (f1-f2) * tb->invdelta;
+    } else {
+        error->one(FLERR, "Could not compute born term for lookup pair table.");
+    }
+  } else if (tabstyle == LINEAR) {
+    itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
+    if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
+    fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
+    value = tb->f[itable] + fraction*tb->df[itable];
+    du = -r * value;
+    f1 = -tb->f[itable+1];
+    f2 = -tb->f[itable];
+    du2 = 2 * r * r *(f1-f2) * tb->invdelta;
+  } else if (tabstyle == SPLINE) {
+    // itable = static_cast<int> ((rsq-tb->innersq) * tb->invdelta);
+    // if (itable >= tlm1) error->one(FLERR,"Pair distance > table outer cutoff");
+    // b = (rsq - tb->rsq[itable]) * tb->invdelta;
+    // a = 1.0 - b;
+    // value = a * tb->f[itable] + b * tb->f[itable+1] +
+    //   ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
+    //   tb->deltasq6;
+    // fforce = factor_lj * value;
+    error->one(FLERR, "Born compute not yet implemented for spline table force.");
+  } else {
+    // union_int_float_t rsq_lookup;
+    // rsq_lookup.f = rsq;
+    // itable = rsq_lookup.i & tb->nmask;
+    // itable >>= tb->nshiftbits;
+    // fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+    // value = tb->f[itable] + fraction*tb->df[itable];
+    // fforce = factor_lj * value;
+    error->one(FLERR, "Born compute not yet implemented for bimap table force.");
+  }
+  dupair = factor_lj*du;
+  du2pair = factor_lj*du2;
+}
 /* ----------------------------------------------------------------------
    return the Coulomb cutoff for tabled potentials
    called by KSpace solvers which require that all pairwise cutoffs be the same
