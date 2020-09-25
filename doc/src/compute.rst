@@ -178,6 +178,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` doc
 * :doc:`body/local <compute_body_local>` - attributes of body sub-particles
 * :doc:`bond <compute_bond>` - energy of each bond sub-style
 * :doc:`bond/local <compute_bond_local>` - distance and energy of each bond
+* :doc:`born <compute_born>` - derivative of the energy with regard to strain
 * :doc:`centro/atom <compute_centro_atom>` - centro-symmetry parameter for each atom
 * :doc:`centroid/stress/atom <compute_stress_atom>` - centroid based stress tensor for each atom
 * :doc:`chunk/atom <compute_chunk_atom>` - assign chunk IDs to each atom

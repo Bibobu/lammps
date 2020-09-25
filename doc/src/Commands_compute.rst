@@ -32,6 +32,7 @@ KOKKOS, o = USER-OMP, t = OPT.
    * :doc:`body/local <compute_body_local>`
    * :doc:`bond <compute_bond>`
    * :doc:`bond/local <compute_bond_local>`
+   * :doc:`born <compute_born>`
    * :doc:`centro/atom <compute_centro_atom>`
    * :doc:`centroid/stress/atom <compute_stress_atom>`
    * :doc:`chunk/atom <compute_chunk_atom>`
