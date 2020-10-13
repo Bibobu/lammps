@@ -181,7 +181,7 @@ void ComputeBorn::compute_vector()
   int i;
   for (i = 0; i < nvalues; i++) values_local[i] = 0.0;
 
-  //Compute Born contribution on separate procs
+  // Compute Born contribution on separate procs
   if (pairflag) compute_pairs();
 
   if (bondflag) compute_bonds();

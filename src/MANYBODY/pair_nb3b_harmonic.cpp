@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_nb3b_harmonic.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -29,7 +29,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "potential_file_reader.h"
 
@@ -47,13 +47,14 @@ PairNb3bHarmonic::PairNb3bHarmonic(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
-  map = NULL;
+  params = nullptr;
+  elem2param = nullptr;
+  map = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -197,7 +198,7 @@ void PairNb3bHarmonic::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -206,7 +207,7 @@ void PairNb3bHarmonic::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -291,9 +292,14 @@ void PairNb3bHarmonic::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "nb3b/harmonic");
+    PotentialFileReader reader(lmp, file, "nb3b/harmonic", unit_convert_flag);
     char * line;
 
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
     while((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
@@ -323,6 +329,11 @@ void PairNb3bHarmonic::read_file(char *file)
           maxparam += DELTA;
           params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                               "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
         }
 
         params[nparams].ielement = ielement;
@@ -331,7 +342,9 @@ void PairNb3bHarmonic::read_file(char *file)
         params[nparams].k_theta  = values.next_double();
         params[nparams].theta0   = values.next_double();
         params[nparams].cutoff   = values.next_double();
-      } catch (TokenizerException & e) {
+
+        if (unit_convert) params[nparams].k_theta *= conversion_factor;
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 

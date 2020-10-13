@@ -36,10 +36,10 @@ Dihedral::Dihedral(LAMMPS *lmp) : Pointers(lmp)
   suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = maxcvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
-  cvatom = NULL;
-  setflag = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  cvatom = nullptr;
+  setflag = nullptr;
   born_enable = 0;
 
   execution_space = Host;

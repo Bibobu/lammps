@@ -1,6 +1,9 @@
 Example Python scripts that use LAMMPS
 ======================================
 
+The python/examples directory has Python scripts which show how Python
+can run LAMMPS, grab data, change it, and put it back into LAMMPS.
+
 These are the Python scripts included as demos in the python/examples
 directory of the LAMMPS distribution, to illustrate the kinds of
 things that are possible when Python wraps LAMMPS.  If you create your
@@ -80,16 +83,23 @@ See the python/README file for instructions on how to run them and the
 source code for individual scripts for comments about what they do.
 
 Here are screenshots of the vizplotgui_tool.py script in action for
-different visualization package options.  Click to see larger images:
+different visualization package options:
 
-.. image:: JPG/screenshot_gl_small.jpg
-   :target: JPG/screenshot_gl.jpg
+.. |pyex1| image:: img/screenshot_gl.jpg
+   :width: 24%
 
-.. image:: JPG/screenshot_atomeye_small.jpg
-   :target: JPG/screenshot_atomeye.jpg
+.. |pyex2| image:: img/screenshot_atomeye.jpg
+   :width: 24%
 
-.. image:: JPG/screenshot_pymol_small.jpg
-   :target: JPG/screenshot_pymol.jpg
+.. |pyex3| image:: img/screenshot_pymol.jpg
+   :width: 24%
 
-.. image:: JPG/screenshot_vmd_small.jpg
-   :target: JPG/screenshot_vmd.jpg
+.. |pyex4| image:: img/screenshot_vmd.jpg
+   :width: 24%
+
+|pyex1|  |pyex2|  |pyex3|  |pyex4|
+
+.. raw:: html
+
+   Click to see larger versions of the images.
+
