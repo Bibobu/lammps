@@ -176,6 +176,11 @@ void ComputeBorn::compute_vector()
 {
   invoked_array = update->ntimestep;
 
+  // zero out arrays for one sample
+
+  int i;
+  for (i = 0; i < nvalues; i++) values_local[i] = 0.0;
+
   //Compute Born contribution on separate procs
   if (pairflag) compute_pairs();
 
@@ -223,10 +228,6 @@ void ComputeBorn::compute_pairs()
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
-  // zero out arrays for one sample
-
-  for (i = 0; i < nvalues; i++) values_local[i] = 0.0;
-
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
 
@@ -249,6 +250,7 @@ void ComputeBorn::compute_pairs()
   double rij[3];
   double pair_pref;
   double r2inv;
+
 
   m = 0;
   while (m<nvalues) {
@@ -428,7 +430,8 @@ void ComputeBorn::compute_angles()
   int i,m,n,na,atom1,atom2,atom3,imol,iatom,atype,ivar;
   tagint tagprev;
   double delx1,dely1,delz1,delx2,dely2,delz2;
-  double rsq1,rsq2,r1,r2,cost,theta;
+  double rsq1,rsq2,r1,r2,cost;
+  double r1r2, r1r2inv;
   double rsq1inv,rsq2inv,r1inv,r2inv,cinv;
   double *ptr;
 
@@ -500,8 +503,6 @@ void ComputeBorn::compute_angles()
         if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
         if (atype <= 0) continue;
 
-        // theta needed by one or more outputs
-
         delx1 = x[atom1][0] - x[atom2][0];
         dely1 = x[atom1][1] - x[atom2][1];
         delz1 = x[atom1][2] - x[atom2][2];
@@ -528,15 +529,15 @@ void ComputeBorn::compute_angles()
         r2 = sqrt(rsq2);
         r2inv = 1.0/r2;
 
+        r1r2 = delx1*delx2 + dely1*dely2 + delz1*delz2;
+        r1r2inv = 1/r1r2;
         // cost = cosine of angle
-        // theta = angle in radians
 
         cost = delx1*delx2 + dely1*dely2 + delz1*delz2;
         cost /= r1*r2;
         if (cost > 1.0) cost = 1.0;
         if (cost < -1.0) cost = -1.0;
         cinv = 1.0/cost;
-        theta = acos(cost);
 
         // The method must return derivative with regards
         // to cos(theta)!
@@ -555,7 +556,7 @@ void ComputeBorn::compute_angles()
         for (i = 0; i<6; i++) {
           a = albe[i][0];
           b = albe[i][1];
-          dcos[i] = cost*(del1[a]*del2[b]+del1[b]*del2[a]*r1inv*r2inv -
+          dcos[i] = cost*(del1[a]*del2[b]+del1[b]*del2[a]*r1r2inv -
                           del1[a]*del1[b]*rsq1inv - del2[a]*del2[b]*rsq2inv);
         }
         for (i = 0; i<21; i++) {
@@ -569,8 +570,8 @@ void ComputeBorn::compute_angles()
                           del2[a]*del2[b]*del2[c]*del2[d]*rsq2inv*rsq2inv) -
                          (del1[a]*del2[b]+del1[b]*del2[a]) *
                          (del1[c]*del2[d]+del1[d]*del2[c]) *
-                         rsq1inv*rsq2inv;
-          d2cos[i] =  c*d2lncos[i] + dcos[e]*dcos[f]*cinv;
+                         r1r2inv*r1r2inv;
+          d2cos[i] =  cost*d2lncos[i] + dcos[e]*dcos[f]*cinv;
           values_local[m+i] += duang*d2cos[i] + du2ang*dcos[e]*dcos[f];
         }
       }
@@ -782,10 +783,10 @@ void ComputeBorn::compute_dihedrals()
                   - 8*(b1[a]*b2[b]+b1[b]*b2[a])*(b1[c]*b2[d]+b1[d]*b2[c]);
           d2nn[i] = 4*(b2[a]*b2[b]*b3[c]*b3[d] + b2[c]*b2[d]*b3[a]*b3[b])
                   - 8*(b2[a]*b3[b]+b2[b]*b3[a])*(b2[c]*b3[d]+b2[d]*b3[c]);
-          d2mn[i] = (b1[a]*b2[b]+b1[b]*b2[a])*(b2[c]*b2[d]+b2[d]*b3[c])
+          d2mn[i] = (b1[a]*b2[b]+b1[b]*b2[a])*(b2[c]*b3[d]+b2[d]*b3[c])
                   + (b2[a]*b3[b]+b2[b]*b3[a])*(b1[c]*b2[d]+b1[d]*b2[d])
-                  - 2*(b1[a]*b3[b]+b1[b]*b3[a])*(b2[c]*b2[d])
-                  - 2*(b1[c]*b3[d]+b1[d]*b3[c])*(b2[a]*b2[b]);
+                  - (b1[a]*b3[b]+b1[b]*b3[a])*(b2[c]*b2[d]+b2[c]*b2[d])
+                  - (b1[c]*b3[d]+b1[d]*b3[c])*(b2[a]*b2[b]+b2[a]*b2[b]);
           d2cos[i] = co/2.*(
                   rabinv*rabinv*d2mn[i]
                   - rabinv*rabinv*rabinv*rabinv*dmn[e]*dmn[f]

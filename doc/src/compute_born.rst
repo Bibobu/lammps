@@ -26,7 +26,7 @@ Description
 Define a compute that calculates
 :math:`\frac{\partial{}U}{\partial\varepsilon_{i}\partial\varepsilon_{j}}` the
 second derivatives of the potential energy :math:`U` with regard to strain
-tensor :math:`\varepsilon` elements. These values can be used to compute:
+tensor :math:`\varepsilon` elements. These values are related to:
 
 .. math::
 
@@ -46,8 +46,8 @@ symmetric matrix:
                \left(\delta_{i,j}+(\delta_{1,i}+\delta_{2,i}+\delta_{3,i})\right.
                \left.*(\delta_{1,j}+\delta_{2,j}+\delta_{3,j})\right)
 
-In both of the above expressions, :math:`\sigma` stands for the virial stress
-tensor, :math:`\delta` is the Kronecker delta and the usual notation apply for
+In the above expression, :math:`\sigma` stands for the virial stress
+tensor, :math:`\delta` is the Kronecker delta andthe usual notation apply for
 the number of particle, the temperature and volume respectively :math:`N`,
 :math:`T` and :math:`V`.
 
@@ -60,16 +60,16 @@ following matrix element:
     \matrix{
        C_{1}  & C_{7}   & C_{8}  & C_{9}  & C_{10} & C_{11} \\
        C_{7}  & C_{2}   & C_{12} & C_{13} & C_{14} & C_{15} \\
-       C_{8}  & C_{12}  & C_{3}  & C_{16} & C_{17} & C_{18} \\
-       C_{9}  & C_{13}  & C_{16} & C_{4}  & C_{19} & C_{20} \\
-       C_{10} & C_{14}  & C_{17} & C_{19} & C_{5}  & C_{21} \\
-       C_{11} & C_{15}  & C_{18} & C_{20} & C_{12} & C_{6}
+       \vdots & C_{12}  & C_{3}  & C_{16} & C_{17} & C_{18} \\
+       \vdots & C_{13}  & C_{16} & C_{4}  & C_{19} & C_{20} \\
+       \vdots & \vdots  & \vdots & C_{19} & C_{5}  & C_{21} \\
+       \vdots & \vdots  & \vdots & \vdots & C_{21} & C_{6}
        }
 
-in this matrix the indices are the corresponding term index in the compute
-output. Each term comes from the sum of every interactions derivatives in the
-system as explained in :ref:`(VanWorkum) <VanWorkum>` or
-:ref:`(Voyiatzis) <Voyiatzis>`.
+in this matrix the indices of :math:`C_{k}` value are the corresponding index
+:math:`k` in the compute output. Each term comes from the sum of every
+interactions derivatives in the system as explained in :ref:`(VanWorkum)
+<VanWorkum>` or :ref:`(Voyiatzis) <Voyiatzis>`.
 
 The output can be accessed using usual Lammps routines:
 
