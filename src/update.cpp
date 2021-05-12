@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -54,6 +54,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   eflag_atom = vflag_atom = 0;
 
   dt_default = 1;
+  dt = 0.0;
   unit_style = nullptr;
   set_units("lj");
 
@@ -124,7 +125,7 @@ void Update::init()
 void Update::set_units(const char *style)
 {
   // physical constants from:
-  // http://physics.nist.gov/cuu/Constants/Table/allascii.txt
+  // https://physics.nist.gov/cuu/Constants/Table/allascii.txt
   // using thermochemical calorie = 4.184 J
 
   double dt_old = dt;
@@ -300,15 +301,12 @@ void Update::set_units(const char *style)
   } else error->all(FLERR,"Illegal units command");
 
   delete [] unit_style;
-  int n = strlen(style) + 1;
-  unit_style = new char[n];
-  strcpy(unit_style,style);
+  unit_style = utils::strdup(style);
 
   // check if timestep was changed from default value
   if (!dt_default && (comm->me == 0)) {
-    error->warning(FLERR,fmt::format("Changing timestep from {:.6} to {:.6} "
-                                     "due to changing units to {}",
-                                     dt_old, dt, unit_style));
+    error->warning(FLERR,"Changing timestep from {:.6} to {:.6} due to "
+                   "changing units to {}", dt_old, dt, unit_style);
   }
   dt_default = 1;
 }
@@ -323,7 +321,12 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
   delete integrate;
 
   int sflag;
-  new_integrate(arg[0],narg-1,&arg[1],trysuffix,sflag);
+
+  if (narg-1 > 0) {
+    new_integrate(arg[0],narg-1,&arg[1],trysuffix,sflag);
+  } else {
+    new_integrate(arg[0],0,nullptr,trysuffix,sflag);
+  }
 
   std::string estyle = arg[0];
   if (sflag) {

@@ -1,5 +1,5 @@
-Retrieving LAMMPS configuration information
-*******************************************
+Configuration information
+=========================
 
 The following methods can be used to query the LAMMPS library
 about compile time settings and included packages and styles.
@@ -39,7 +39,9 @@ about compile time settings and included packages and styles.
 * :py:attr:`lammps.has_jpeg_support <lammps.lammps.has_jpeg_support>`
 * :py:attr:`lammps.has_ffmpeg_support <lammps.lammps.has_ffmpeg_support>`
 
-* :py:attr:`lammps.installed_packages <lammps.lammps.installed_pages>`
+* :py:attr:`lammps.installed_packages <lammps.lammps.installed_packages>`
+
+* :py:meth:`lammps.get_accelerator_config <lammps.lammps.accelerator_config>`
 
 * :py:meth:`lammps.has_style() <lammps.lammps.has_style()>`
 * :py:meth:`lammps.available_styles() <lammps.lammps.available_styles()>`

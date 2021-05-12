@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -112,7 +112,7 @@ void FixDtReset::init()
   // set rRESPA flag
 
   respaflag = 0;
-  if (strstr(update->integrate_style,"respa")) respaflag = 1;
+  if (utils::strmatch(update->integrate_style,"^respa")) respaflag = 1;
 
   // check for DCD or XTC dumps
 

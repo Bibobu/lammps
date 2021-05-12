@@ -1,7 +1,7 @@
 Basic build options
 ===================
 
-The following topics are covered on this page, for building both with
+The following topics are covered on this page, for building with both
 CMake and make:
 
 * :ref:`Serial vs parallel build <serial>`
@@ -95,7 +95,7 @@ standard. A more detailed discussion of that is below.
 
       .. note::
 
-         The file ``src/STUBS/mpi.c`` provides a CPU timer function
+         The file ``src/STUBS/mpi.cpp`` provides a CPU timer function
          called ``MPI_Wtime()`` that calls ``gettimeofday()``.  If your
          operating system does not support ``gettimeofday()``, you will
          need to insert code to call another timer.  Note that the
@@ -234,14 +234,21 @@ LAMMPS.
          cmake ../cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_Fortran_COMPILER=gfortran
          # Building with Intel Compilers:
          cmake ../cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc -DCMAKE_Fortran_COMPILER=ifort
+         # Building with Intel oneAPI Compilers:
+         cmake ../cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_Fortran_COMPILER=ifx
          # Building with LLVM/Clang Compilers:
          cmake ../cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_Fortran_COMPILER=flang
+         # Building with PGI/Nvidia Compilers:
+         cmake ../cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_CXX_COMPILER=pgc++ -DCMAKE_Fortran_COMPILER=pgfortran
 
       For compiling with the Clang/LLVM compilers a CMake preset is
       provided that can be loaded with
       `-C ../cmake/presets/clang.cmake`.  Similarly,
       `-C ../cmake/presets/intel.cmake` should switch the compiler
-      toolchain to the Intel compilers.
+      toolchain to the legacy Intel compilers, `-C ../cmake/presets/oneapi.cmake`
+      will switch to the LLVM based oneAPI Intel compilers,
+      and `-C ../cmake/presets/pgi.cmake`
+      will switch the compiler to the PGI compilers.
 
       In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add
       compiler flags to tune for optimal performance on given hosts. By
@@ -299,10 +306,11 @@ LAMMPS.
 
          then you have either an unsupported (old) compiler or you have
          to turn on C++11 mode.  The latter applies to GCC 4.8.x shipped
-         with RHEL 7.x and CentOS 7.x.  For those compilers, you need to
-         add the ``-std=c++11`` flag.  Otherwise, you would have to
-         install a newer compiler that supports C++11; either as a
-         binary package or through compiling from source.
+         with RHEL 7.x and CentOS 7.x or GCC 5.4.x shipped with Ubuntu16.04.
+         For those compilers, you need to add the ``-std=c++11`` flag.
+         If there is no compiler that supports this flag (or equivalent),
+         you would have to install a newer compiler that supports C++11;
+         either as a binary package or through compiling from source.
 
          If you build LAMMPS with any :doc:`Speed_packages` included,
          there may be specific compiler or linker flags that are either
@@ -521,6 +529,20 @@ you want to copy files to is protected.
          cmake -D CMAKE_INSTALL_PREFIX=path [options ...] ../cmake
          make                        # perform make after CMake command
          make install                # perform the installation into prefix
+
+      During the installation process CMake will by default remove any runtime
+      path settings for loading shared libraries.  Because of this you may
+      have to set or modify the ``LD_LIBRARY_PATH`` (or ``DYLD_LIBRARY_PATH``)
+      environment variable, if you are installing LAMMPS into a non-system
+      location and/or are linking to libraries in a non-system location that
+      depend on such runtime path settings.
+      As an alternative you may set the CMake variable ``LAMMPS_INSTALL_RPATH``
+      to ``on`` and then the runtime paths for any linked shared libraries
+      and the library installation folder for the LAMMPS library will be
+      embedded and thus the requirement to set environment variables is avoided.
+      The ``off`` setting is usually preferred for packaged binaries or when
+      setting up environment modules, the ``on`` setting is more convenient
+      for installing software into a non-system or personal folder.
 
    .. tab:: Traditional make
 

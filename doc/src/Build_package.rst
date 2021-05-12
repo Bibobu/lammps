@@ -30,17 +30,17 @@ steps, as explained on the :doc:`Build extras <Build_extras>` page.
 These links take you to the extra instructions for those select
 packages:
 
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
-| :ref:`COMPRESS <compress>`       | :ref:`GPU <gpu>`                 | :ref:`KIM <kim>`                   | :ref:`KOKKOS <kokkos>`       | :ref:`LATTE <latte>`           | :ref:`MESSAGE <message>`             |
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
-| :ref:`MSCG <mscg>`               | :ref:`OPT <opt>`                 | :ref:`POEMS <poems>`               | :ref:`PYTHON <python>`       | :ref:`VORONOI <voronoi>`       | :ref:`USER-ADIOS <user-adios>`       |
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
-| :ref:`USER-ATC <user-atc>`       | :ref:`USER-AWPMD <user-awpmd>`   | :ref:`USER-COLVARS <user-colvars>` | :ref:`USER-H5MD <user-h5md>` | :ref:`USER-INTEL <user-intel>` | :ref:`USER-MOLFILE <user-molfile>`   |
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
-| :ref:`USER-NETCDF <user-netcdf>` | :ref:`USER-PLUMED <user-plumed>` | :ref:`USER-OMP <user-omp>`         | :ref:`USER-QMMM <user-qmmm>` | :ref:`USER-QUIP <user-quip>`   | :ref:`USER-SCAFACOS <user-scafacos>` |
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
-| :ref:`USER-SMD <user-smd>`       | :ref:`USER-VTK <user-vtk>`       |                                    |                              |                                |                                      |
-+----------------------------------+----------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
+| :ref:`COMPRESS <compress>`           | :ref:`GPU <gpu>`               | :ref:`KIM <kim>`                   | :ref:`KOKKOS <kokkos>`       | :ref:`LATTE <latte>`           | :ref:`MESSAGE <message>`             |
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
+| :ref:`MSCG <mscg>`                   | :ref:`OPT <opt>`               | :ref:`POEMS <poems>`               | :ref:`PYTHON <python>`       | :ref:`VORONOI <voronoi>`       | :ref:`USER-ADIOS <user-adios>`       |
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
+| :ref:`USER-ATC <user-atc>`           | :ref:`USER-AWPMD <user-awpmd>` | :ref:`USER-COLVARS <user-colvars>` | :ref:`USER-H5MD <user-h5md>` | :ref:`USER-INTEL <user-intel>` | :ref:`USER-MOLFILE <user-molfile>`   |
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
+| :ref:`USER-NETCDF <user-netcdf>`     | :ref:`USER-PACE <user-pace>`   | :ref:`USER-PLUMED <user-plumed>`   | :ref:`USER-OMP <user-omp>`   | :ref:`USER-QMMM <user-qmmm>`   | :ref:`USER-QUIP <user-quip>`         |
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
+| :ref:`USER-SCAFACOS <user-scafacos>` | :ref:`USER-SMD <user-smd>`     | :ref:`USER-VTK <user-vtk>`         |                              |                                |                                      |
++--------------------------------------+--------------------------------+------------------------------------+------------------------------+--------------------------------+--------------------------------------+
 
 The mechanism for including packages is simple but different for CMake
 versus make.
@@ -158,7 +158,9 @@ one of them as a starting point and customize it to your needs.
     cmake -C ../cmake/presets/download.cmake [OPTIONS] ../cmake  # enable packages which download sources or potential files
     cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
     cmake -C ../cmake/presets/clang.cmake    [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
+    cmake -C ../cmake/presets/gcc.cmake      [OPTIONS] ../cmake  # change settings to use the GNU compilers by default
     cmake -C ../cmake/presets/intel.cmake    [OPTIONS] ../cmake  # change settings to use the Intel compilers by default
+    cmake -C ../cmake/presets/pgi.cmake      [OPTIONS] ../cmake  # change settings to use the PGI compilers by default
     cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
     cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
     mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross compilers
@@ -166,9 +168,11 @@ one of them as a starting point and customize it to your needs.
 .. note::
 
    Running cmake this way manipulates the CMake settings cache in your
-   current build directory. You can combine multiple presets and options
+   current build directory.  You can combine multiple presets and options
    in a single cmake run, or change settings incrementally by running
-   cmake with new flags.
+   cmake with new flags.  If you use a present for selecting a set of
+   compilers, it will reset all settings from previous CMake runs.
+
 
 Example
 """""""
@@ -187,7 +191,7 @@ Example
 
    # to reset the package selection from above to the default of no packages
    # but leaving all other settings untouched. You can run:
-   cmake -C ../cmake/presets/no_all.cmake .
+   cmake -C ../cmake/presets/all_off.cmake .
 
 ----------
 

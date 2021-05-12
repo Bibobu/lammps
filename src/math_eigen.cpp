@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,9 @@
 #include "math_eigen.h"
 #include "math_eigen_impl.h"
 
-#include<array>
+#include <array>
+#include <utility>
+#include <vector>
 
 using std::vector;
 using std::array;

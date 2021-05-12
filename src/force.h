@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,6 +25,26 @@ namespace LAMMPS_NS {
   class Improper;
   class KSpace;
   class Pair;
+
+enum {
+  ENERGY_NONE    = 0x00,
+  ENERGY_GLOBAL  = 0x01,
+  ENERGY_ATOM    = 0x02
+};
+
+enum {
+  VIRIAL_NONE     = 0x00,
+  VIRIAL_PAIR     = 0x01,
+  VIRIAL_FDOTR    = 0x02,
+  VIRIAL_ATOM     = 0x04,
+  VIRIAL_CENTROID = 0x08
+};
+
+enum {
+  CENTROID_SAME     = 0,
+  CENTROID_AVAIL    = 1,
+  CENTROID_NOTAVAIL = 2
+};
 
 class Force : protected Pointers {
  public:

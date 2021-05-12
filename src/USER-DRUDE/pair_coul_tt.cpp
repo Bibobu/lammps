@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -163,7 +163,7 @@ void PairCoulTT::compute(int eflag, int vflag)
           dcoul = qqrd2e * qi * qj *scale[itype][jtype] * rinv;
 
         factor_f = (-beta*gamma + r*betaprime*gamma + r*beta*gammaprime)*factor_coul;
-        if(eflag) factor_e = - beta*gamma*factor_coul;
+        if (eflag) factor_e = - beta*gamma*factor_coul;
         fpair = factor_f * dcoul * r2inv;
 
         f[i][0] += delx*fpair;

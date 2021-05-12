@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,8 +20,6 @@
 #include "memory.h"
 #include "variable.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 
 /* -------------------------------------------------------------------- */
@@ -40,10 +38,7 @@ ImbalanceVar::~ImbalanceVar()
 int ImbalanceVar::options(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
-
-  int len = strlen(arg[0]) + 1;
-  name = new char[len];
-  memcpy(name,arg[0],len);
+  name = utils::strdup(arg[0]);
   init(0);
 
   return 1;

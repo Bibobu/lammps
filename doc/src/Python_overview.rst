@@ -2,9 +2,9 @@ Overview
 ========
 
 The LAMMPS distribution includes a ``python`` directory with the Python
-code needed to run LAMMPS from Python.  The ``python/lammps.py``
-contains :doc:`the "lammps" Python <Python_module>` that wraps the
-LAMMPS C-library interface.  This file makes it is possible to do the
+code needed to run LAMMPS from Python.  The ``python/lammps`` package
+contains :doc:`the "lammps" Python module <Python_module>` that wraps the
+LAMMPS C-library interface.  This module makes it is possible to do the
 following either from a Python script, or interactively from a Python
 prompt:
 
@@ -20,8 +20,8 @@ have a version of Python that extends Python to enable multiple
 instances of Python to read what you type.
 
 To do all of this, you must build LAMMPS in :ref:`"shared" mode <exe>`
-and make certain that your Python interpreter can find the ``lammps.py``
-file and the LAMMPS shared library file.
+and make certain that your Python interpreter can find the ``lammps``
+Python package and the LAMMPS shared library file.
 
 .. _ctypes: https://docs.python.org/3/library/ctypes.html
 
@@ -41,14 +41,14 @@ Below is an example output for Python version 3.8.5.
    >>>
 
 
-.. warning:: Python 2 support is deprecated
+.. warning::
 
-   While the LAMMPS Python module was originally developed to support
-   both, Python 2 and 3, any new code is only tested with Python 3.
-   Please note that Python 2 is no longer maintained as of `January 1,
-   2020 <https://www.python.org/doc/sunset-python-2/>`_.  Therefore, we
-   highly recommend using Python version 3.6 or later.  Compatibility to
-   Python 2 will be removed eventually.
+   The options described in this section of the manual for using Python with
+   LAMMPS currently support either Python 2 or 3.  Specifically version 2.7 or
+   later and 3.6 or later.  Since the Python community no longer maintains Python
+   2 (see `this notice <https://www.python.org/doc/sunset-python-2/>`_), we
+   recommend use of Python 3 with LAMMPS.  While Python 2 code should continue to
+   work, that is not something we can guarantee long-term.
 
 ---------
 
