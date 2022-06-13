@@ -37,6 +37,7 @@ static constexpr double SMALLER = 0.00001;
 DihedralOPLS::DihedralOPLS(LAMMPS *_lmp) : Dihedral(_lmp)
 {
   writedata = 1;
+  born_matrix_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -331,4 +332,63 @@ void DihedralOPLS::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     fprintf(fp, "%d %g %g %g %g\n", i, 2.0 * k1[i], 2.0 * k2[i], 2.0 * k3[i], 2.0 * k4[i]);
+}
+
+/* ----------------------------------------------------------------------*/
+
+void DihedralOPLS::born_matrix(int nd, int i1, int i2, int i3, int i4,
+                             double &dudih, double &du2dih) {
+  int i,type;
+  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
+  double c,s,si,ax,ay,az,bx,by,bz,rasq,rbsq,ra2inv,rb2inv,rabinv;
+
+  int **dihedrallist = neighbor->dihedrallist;
+  double **x = atom->x;
+
+  type = dihedrallist[nd][4];
+
+  vb1x = x[i1][0] - x[i2][0];
+  vb1y = x[i1][1] - x[i2][1];
+  vb1z = x[i1][2] - x[i2][2];
+
+  vb2x = x[i3][0] - x[i2][0];
+  vb2y = x[i3][1] - x[i2][1];
+  vb2z = x[i3][2] - x[i2][2];
+
+  vb2xm = -vb2x;
+  vb2ym = -vb2y;
+  vb2zm = -vb2z;
+
+  vb3x = x[i4][0] - x[i3][0];
+  vb3y = x[i4][1] - x[i3][1];
+  vb3z = x[i4][2] - x[i3][2];
+
+  // c,s calculation
+
+  ax = vb1y*vb2zm - vb1z*vb2ym;
+  ay = vb1z*vb2xm - vb1x*vb2zm;
+  az = vb1x*vb2ym - vb1y*vb2xm;
+  bx = vb3y*vb2zm - vb3z*vb2ym;
+  by = vb3z*vb2xm - vb3x*vb2zm;
+  bz = vb3x*vb2ym - vb3y*vb2xm;
+
+  rasq = ax*ax + ay*ay + az*az;
+  rbsq = bx*bx + by*by + bz*bz;
+
+  ra2inv = rb2inv = 0.0;
+  if (rasq > 0) ra2inv = 1.0/rasq;
+  if (rbsq > 0) rb2inv = 1.0/rbsq;
+  rabinv = sqrt(ra2inv*rb2inv);
+
+  c = (ax*bx + ay*by + az*bz)*rabinv;
+
+  // This makes things much easier
+  // cos(2n) = 2*cos**2(n) - 1
+  // cos(3n) = 4*cos**3(n) - 3*cos(n)
+  // cos(4n) = 8*cos**4(n) - 8*cos**2(n) + 1
+
+  dudih = 0.0;
+  du2dih = 0.0;
+  dudih = k1[type] - 4 * k2[type] * c + k3[type] * (12*c*c - 3) + k4[type] * (16*c - 32*c*c*c);
+  du2dih = -4 * k2[type] + 24*k3[type] * c + k4[type] * (16 - 96*c*c);
 }

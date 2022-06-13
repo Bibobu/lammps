@@ -36,6 +36,7 @@ class AngleHarmonic : public Angle {
   void write_data(FILE *) override;
   double single(int, int, int, int) override;
   void *extract(const char *, int &) override;
+  void born_matrix(int /*dtype*/, int, int, int, double &, double &) override;
 
  protected:
   double *k, *theta0;
