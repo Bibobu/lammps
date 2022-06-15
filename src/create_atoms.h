@@ -42,6 +42,7 @@ class CreateAtoms : public Command {
   int *basistype;
   double xone[3], quatone[4];
   double radthresh, radscale, mesh_density;
+  double dn;
 
   int varflag, vvar, xvar, yvar, zvar;
   char *vstr, *xstr, *ystr, *zstr;

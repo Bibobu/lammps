@@ -153,6 +153,7 @@ void CreateAtoms::command(int narg, char **arg)
   radthresh = domain->lattice->xlattice;
   mesh_style = BISECTION;
   mesh_density = 1.0;
+  dn = 0.;
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
   for (int i = 0; i < nbasis; i++) basistype[i] = ntype;
@@ -273,6 +274,12 @@ void CreateAtoms::command(int narg, char **arg)
       } else
         error->all(FLERR, "Unknown create_atoms meshmode {}", arg[iarg + 2]);
       iarg += 3;
+    } else if (strcmp(arg[iarg], "dn") == 0) {
+      if (style != MESH || mesh_style != QUASIRANDOM)
+        error->all(FLERR, "dn value only has sense with quasirandom mesh style");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms meshmode", error);
+      dn = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
     } else if (strcmp(arg[iarg], "radscale") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radscale", error);
       if (style != MESH)
@@ -946,6 +953,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   double ab[3], ac[3], bc[3], temp[3], point[3], ref[3];
   double lab, lac, lbc, area, xi, yi;
   double seed = 0.5;
+  double n = 0;
 
   // Order vertices such that a has the largest angle
   MathExtra::sub3(vert[1], vert[0], ab);
@@ -955,6 +963,9 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   lab = MathExtra::len3(ab);
   lac = MathExtra::len3(ac);
   lbc = MathExtra::len3(bc);
+
+  auto random = new RanPark(lmp, 8472874);
+  for (int ii = 0; ii < 30; ii++) random->uniform();
 
   if (lac > lab && lac > lbc) {
     // B has the largest angle, relabel as A
@@ -974,6 +985,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   // Estimate number of particles from area
   MathExtra::cross3(ab, ac, temp);
   area = 0.5 * MathExtra::len3(temp);
+  if (dn) area *= 2*dn;
   int nparticles = ceil(mesh_density * area);
   // estimate radius from number of particles and area
   double rad = sqrt(area/MY_PI/nparticles);
@@ -1001,6 +1013,11 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
       MathExtra::scale3(yi, ab, temp);
       MathExtra::add3(point, temp, point);
     }
+
+    MathExtra::cross3(ab, ac, temp);
+    n = 2*dn*random->uniform() - dn;
+    MathExtra::snormalize3(n, temp, temp);
+    MathExtra::add3(point, temp, point);
 
     MathExtra::add3(point, ref, point);
 
