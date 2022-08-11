@@ -285,15 +285,24 @@ void AngleHarmonic::born_matrix(int type, int i1, int i2, int i3, double &duang,
   double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
 
   double c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+
   c /= r1 * r2;
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
   double s = sqrt(1-c*c);
-  double si = 1/s;
+  duang = 0.;
+  du2ang = 0.;
 
-  double dtheta = (acos(c) - theta0[type]);
-  duang = -2.*k[type] * dtheta * si;
-  du2ang = 2.*k[type] * (si*si - c*dtheta*si*si*si);
+  // Since we need to divide by sin(t) to get the derivation wrt. cos(t)
+  // it is necessary to make this control to avoid NaN values.
+  // 0 is expected anyway from numdiff comparison.
+  if (s) {
+    double si = 1/s;
+
+    double dtheta = (acos(c) - theta0[type]);
+    duang = -2.*k[type] * dtheta * si;
+    du2ang = 2.*k[type] * (si*si - c*dtheta*si*si*si);
+  }
 }
 
 /* ----------------------------------------------------------------------
