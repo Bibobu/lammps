@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -82,7 +82,7 @@ class Pair : protected Pointers {
   int tail_flag;          // pair_modify flag for LJ tail correction
   double etail, ptail;    // energy/pressure tail corrections
   double etail_ij, ptail_ij;
-  int trim_flag;          // pair_modify flag for trimming neigh list
+  int trim_flag;    // pair_modify flag for trimming neigh list
 
   int evflag;    // energy,virial settings
   int eflag_either, eflag_global, eflag_atom;
@@ -123,7 +123,7 @@ class Pair : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
-  int kokkosable;    // 1 if Kokkos pair
+  int kokkosable;             // 1 if Kokkos pair
   int reverse_comm_device;    // 1 if reverse comm on Device
 
   Pair(class LAMMPS *);
@@ -203,6 +203,8 @@ class Pair : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
+  virtual void reset_grid() {}
+
   virtual void pack_forward_grid(int, void *, int, int *) {}
   virtual void unpack_forward_grid(int, void *, int, int *) {}
   virtual void pack_reverse_grid(int, void *, int, int *) {}
@@ -215,12 +217,13 @@ class Pair : protected Pointers {
   // specific child-class methods for certain Pair styles
 
   virtual void *extract(const char *, int &) { return nullptr; }
+  virtual void *extract_peratom(const char *, int &) { return nullptr; }
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
   virtual void min_xf_pointers(int, double **, double **) {}
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
-  virtual void transfer_history(double *, double *) {}
+  virtual void transfer_history(double *, double *, int, int) {}
   virtual double atom2cut(int) { return 0.0; }
   virtual double radii2cut(double, double) { return 0.0; }
 

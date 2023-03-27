@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,6 +23,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
@@ -34,6 +35,7 @@ static constexpr double SMALL = 0.001;
 
 AngleHarmonic::AngleHarmonic(LAMMPS *_lmp) : Angle(_lmp)
 {
+  born_matrix_enable = 1;
   k = nullptr;
   theta0 = nullptr;
   born_matrix_enable = 1;
@@ -268,41 +270,31 @@ double AngleHarmonic::single(int type, int i1, int i2, int i3)
 
 /* ---------------------------------------------------------------------- */
 
-void AngleHarmonic::born_matrix(int type, int i1, int i2, int i3, double &duang, double &du2ang)
+void AngleHarmonic::born_matrix(int type, int i1, int i2, int i3, double &du, double &du2)
 {
   double **x = atom->x;
 
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1, dely1, delz1);
-  double r1 = sqrt(delx1 * delx1 + dely1 * dely1 + delz1 * delz1);
+  domain->minimum_image(delx1,dely1,delz1);
+  double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2, dely2, delz2);
-  double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
+  domain->minimum_image(delx2,dely2,delz2);
+  double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
 
-  double c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
-
-  c /= r1 * r2;
+  double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+  c /= r1*r2;
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
-  double s = sqrt(1-c*c);
-  duang = 0.;
-  du2ang = 0.;
+  double theta = acos(c);
 
-  // Since we need to divide by sin(t) to get the derivation wrt. cos(t)
-  // it is necessary to make this control to avoid NaN values.
-  // 0 is expected anyway from numdiff comparison.
-  if (s) {
-    double si = 1/s;
-
-    double dtheta = (acos(c) - theta0[type]);
-    duang = -2.*k[type] * dtheta * si;
-    du2ang = 2.*k[type] * (si*si - c*dtheta*si*si*si);
-  }
+  double dtheta = theta - theta0[type];
+  du = -2 * k[type] * dtheta / sin(theta);
+  du2 = 2 * k[type] * (sin(theta) - dtheta * cos(theta)) / pow(sin(theta), 3);
 }
 
 /* ----------------------------------------------------------------------

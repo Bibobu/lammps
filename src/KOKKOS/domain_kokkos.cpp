@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -59,17 +59,6 @@ public:
   KOKKOS_INLINE_FUNCTION
   void join(value_type &dst,
              const value_type &src) const {
-    dst.value[0][0] = MIN(dst.value[0][0],src.value[0][0]);
-    dst.value[0][1] = MAX(dst.value[0][1],src.value[0][1]);
-    dst.value[1][0] = MIN(dst.value[1][0],src.value[1][0]);
-    dst.value[1][1] = MAX(dst.value[1][1],src.value[1][1]);
-    dst.value[2][0] = MIN(dst.value[2][0],src.value[2][0]);
-    dst.value[2][1] = MAX(dst.value[2][1],src.value[2][1]);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type &dst,
-             const volatile value_type &src) const {
     dst.value[0][0] = MIN(dst.value[0][0],src.value[0][0]);
     dst.value[0][1] = MAX(dst.value[0][1],src.value[0][1]);
     dst.value[1][0] = MIN(dst.value[1][0],src.value[1][0]);

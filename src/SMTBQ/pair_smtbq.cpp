@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -1232,8 +1232,6 @@ void PairSMTBQ::tabqeq()
   double aCoeff,bCoeff,rcoupe,nang;
 
   int n = atom->ntypes;
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
   nmax = atom->nmax;
   nntype = int((n+1)*n/2);
 
@@ -1242,7 +1240,7 @@ void PairSMTBQ::tabqeq()
 
 #if VERBOSE
   printf ("kmax %d, ds %f, nmax %d\n",kmax,ds,nmax);
-  printf ("nlocal = %d, nghost = %d\n",nlocal,nghost);
+  printf ("nlocal = %d, nghost = %d\n",atom->nlocal,atom->nghost);
   printf ("nntypes %d, kmax %d, rc %f, n %d\n",nntype,kmax,rc,n);
 #endif
 

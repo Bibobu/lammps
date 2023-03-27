@@ -7,7 +7,7 @@ source files provided as a supplement to a publication) that are written
 for an older version of LAMMPS and thus need to be updated to be
 compatible with the current version of LAMMPS.  Due to the active
 development of LAMMPS it is likely to always be incomplete.  Please
-contact developer@lammps.org in case you run across an issue that is not
+contact developers@lammps.org in case you run across an issue that is not
 (yet) listed here.  Please also review the latest information about the
 LAMMPS :doc:`programming style conventions <Modify_style>`, especially
 if you are considering to submit the updated version for inclusion into
@@ -24,6 +24,9 @@ Available topics in mostly chronological order are:
 - `Use of "override" instead of "virtual"`_
 - `Simplified and more compact neighbor list requests`_
 - `Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM`_
+- `Rename of fix STORE/PERATOM to fix STORE/ATOM and change of arguments`_
+- `Use Output::get_dump_by_id() instead of Output::find_dump()`_
+- `Refactored grid communication using Grid3d/Grid2d classes instead of GridComm`_
 
 ----
 
@@ -60,7 +63,7 @@ header file needs to be updated accordingly.
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    int PairEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
    {
@@ -74,7 +77,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    int PairEAM::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
    {
@@ -111,14 +114,14 @@ Example from a pair style:
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    if (eflag || vflag) ev_setup(eflag, vflag);
    else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    ev_init(eflag, vflag);
 
@@ -141,14 +144,14 @@ when they are called from only one or a subset of the MPI processes.
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
     val = force->numeric(FLERR, arg[1]);
     num = force->inumeric(FLERR, arg[2]);
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
     val = utils::numeric(FLERR, true, arg[1], lmp);
     num = utils::inumeric(FLERR, false, arg[2], lmp);
@@ -182,14 +185,14 @@ copy them around for simulations.
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    fp = force->open_potential(filename);
    fp = fopen(filename, "r");
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    fp = utils::open_potential(filename, lmp);
 
@@ -206,7 +209,7 @@ Example:
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    if (fptr == NULL) {
      char str[128];
@@ -216,7 +219,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    if (fptr == nullptr)
      error->one(FLERR, "Cannot open AEAM potential file {}: {}", filename, utils::getsyserror());
@@ -236,7 +239,7 @@ an example from the ``FixWallReflect`` class:
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    FixWallReflect(class LAMMPS *, int, char **);
    virtual ~FixWallReflect();
@@ -246,7 +249,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    FixWallReflect(class LAMMPS *, int, char **);
    ~FixWallReflect() override;
@@ -270,7 +273,7 @@ the type of the "this" pointer argument.
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    comm->forward_comm_pair(this);
    comm->forward_comm_fix(this);
@@ -283,7 +286,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    comm->forward_comm(this);
    comm->reverse_comm(this);
@@ -303,7 +306,7 @@ requests can be :doc:`found here <Developer_notes>`. Example from the
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    int irequest = neighbor->request(this,instance_me);
    neighbor->requests[irequest]->pair = 0;
@@ -316,7 +319,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
    if (cutflag) req->set_cutoff(mycutneigh);
@@ -327,7 +330,7 @@ removed so this update is **required** to avoid compilation failure.
 Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionchanged:: TBD
+.. versionchanged:: 15Sep2022
 
 This change splits the GLOBAL and PERATOM modes of fix STORE into two
 separate fixes STORE/GLOBAL and STORE/PERATOM.  There was very little
@@ -339,7 +342,7 @@ these are internal fixes, there is no user visible change.
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    #include "fix_store.h"
 
@@ -350,7 +353,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    #include "fix_store_peratom.h"
 
@@ -361,7 +364,7 @@ New:
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    #include "fix_store.h"
 
@@ -372,7 +375,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    #include "fix_store_global.h"
 
@@ -380,5 +383,126 @@ New:
       modify->add_fix(fmt::format("{} {} STORE/GLOBAL 1 1",id_fix,group->names[igroup]));
 
    FixStoreGlobal *fix = dynamic_cast<FixStoreGlobal *>(modify->get_fix_by_id(id_fix));
+
+This change is **required** or else the code will not compile.
+
+Rename of fix STORE/PERATOM to fix STORE/ATOM and change of arguments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: TBD
+
+The available functionality of the internal fix to store per-atom
+properties was expanded to enable storing data with ghost atoms and to
+support binary restart files.  With those changes, the fix was renamed
+to fix STORE/ATOM and the number and order of (required) arguments has
+changed.
+
+Old syntax: ``ID group-ID STORE/PERATOM rflag n1 n2 [n3]``
+
+- *rflag* = 0/1, *no*/*yes* store per-atom values in restart file
+- :math:`n1 = 1, n2 = 1, \mathrm{no}\;n3 \to` per-atom vector, single value per atom
+- :math:`n1 = 1, n2 > 1, \mathrm{no}\;n3 \to` per-atom array, *n2* values per atom
+- :math:`n1 = 1, n2 > 0, n3 > 0 \to` per-atom tensor, *n2* x *n3* values per atom
+
+New syntax:  ``ID group-ID STORE/ATOM n1 n2 gflag rflag``
+
+- :math:`n1 = 1, n2 = 0 \to` per-atom vector, single value per atom
+- :math:`n1 > 1, n2 = 0 \to` per-atom array, *n1* values per atom
+- :math:`n1 > 0, n2 > 0 \to` per-atom tensor, *n1* x *n2* values per atom
+- *gflag* = 0/1, *no*/*yes* communicate per-atom values with ghost atoms
+- *rflag* = 0/1, *no*/*yes* store per-atom values in restart file
+
+Since this is an internal fix, there is no user visible change.
+
+Use Output::get_dump_by_id() instead of Output::find_dump()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 15Sep2022
+
+The accessor function to individual dump style instances has been changed
+from ``Output::find_dump()`` returning the index of the dump instance in
+the list of dumps to ``Output::get_dump_by_id()`` returning a pointer to
+the dump directly.  Example:
+
+Old:
+
+.. code-block:: c++
+
+   int idump = output->find_dump(arg[iarg+1]);
+   if (idump < 0)
+     error->all(FLERR,"Dump ID in hyper command does not exist");
+   memory->grow(dumplist,ndump+1,"hyper:dumplist");
+   dumplist[ndump++] = idump;
+
+   [...]
+
+   if (dumpflag)
+     for (int idump = 0; idump < ndump; idump++)
+       output->dump[dumplist[idump]]->write();
+
+New:
+
+.. code-block:: c++
+
+   auto idump = output->get_dump_by_id(arg[iarg+1]);
+   if (!idump) error->all(FLERR,"Dump ID {} in hyper command does not exist", arg[iarg+1]);
+   dumplist.emplace_back(idump);
+
+   [...]
+
+   if (dumpflag) for (auto idump : dumplist) idump->write();
+
+This change is **required** or else the code will not compile.
+
+Refactored grid communication using Grid3d/Grid2d classes instead of GridComm
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 22Dec2022
+
+The ``GridComm`` class was for creating and communicating distributed
+grids was replaced by the ``Grid3d`` class with added functionality.
+A ``Grid2d`` class was also added for additional flexibility.
+
+The new functionality and commands using the two grid classes are
+discussed on the following documentation pages:
+
+- :doc:`Howto_grid`
+- :doc:`Developer_grid`
+
+If you have custom LAMMPS code, which uses the GridComm class, here are some notes
+on how to adapt it for using the Grid3d class.
+
+(1) The constructor has changed to allow the ``Grid3d`` / ``Grid2d``
+    classes to partition the global grid across processors, both for
+    owned and ghost grid cells.  Previously any class which called
+    ``GridComm`` performed the partitioning itself and that information
+    was passed in the ``GridComm::GridComm()`` constructor.  There are
+    several "set" functions which can be called to alter how ``Grid3d``
+    / ``Grid2d`` perform the partitioning.  They should be sufficient
+    for most use cases of the grid classes.
+
+(2) The partitioning is triggered by the ``setup_grid()`` method.
+
+(3) The ``setup()`` method of the ``GridComm`` class has been replaced
+    by the ``setup_comm()`` method in the new grid classes.  The syntax
+    for the ``forward_comm()`` and ``reverse_comm()`` methods is
+    slightly altered as is the syntax of the associated pack/unpack
+    callback methods.  But the functionality of these operations is the
+    same as before.
+
+(4) The new ``Grid3d`` / ``Grid2d`` classes have additional
+    functionality for dynamic load-balancing of grids and their
+    associated data across processors.  This did not exist in the
+    ``GridComm`` class.
+
+This and more is explained in detail on the :doc:`Developer_grid` page.
+The following LAMMPS source files can be used as illustrative examples
+for how the new grid classes are used by computes, fixes, and various
+KSpace solvers which use distributed FFT grids:
+
+- ``src/fix_ave_grid.cpp``
+- ``src/compute_property_grid.cpp``
+- ``src/EXTRA-FIX/fix_ttm_grid.cpp``
+- ``src/KSPACE/pppm.cpp``
 
 This change is **required** or else the code will not compile.
